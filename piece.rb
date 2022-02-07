@@ -82,24 +82,14 @@ module Piece
     if Piece.is_king?(board_copy.cells[move]) 
       return if piece.color == board_copy.cells[move].color 
     end
-
     board_copy.cells[move] = piece 
     board_copy.cells[piece.row * 8 + piece.column] = "#"
     king = board_copy.cells[Piece.get_king(piece, board_copy)]
 
-    # recalculate moves for pieces that attack this piece
-    piece_square = piece.row * 8 + piece.column
-    Piece.attackers(piece, piece_square, board_copy).each do |a| 
-      a.moves = []
-      a.moves = a.get_moves(board_copy) 
+    king.get_enemy_pieces(board_copy).each do |e| 
+      e.moves = []
+      e.get_moves(board_copy)
     end
-
-    Piece.king_checkers(board_copy).each do |checker|
-      checker.moves = [] 
-      checker.get_moves(board_copy)
-      Piece.add_check_moves(checker, board_copy)
-    end
-
     return board_copy
   end
 
@@ -129,11 +119,8 @@ module Piece
         king = board_copy.cells[king]
 
         # recalculate the moves of all pieces that check the king
-        if king.in_check?(board_copy)
-          p "#{piece.char}: #{Piece.square_to_notation(move)}"
-          piece.moves[piece.moves.index(move)] = nil  
-        end
-        
+
+        piece.moves[piece.moves.index(move)] = nil if king.in_check?(board_copy)
         piece.moves = piece.moves.select { |m| m != nil}
       end
     end
