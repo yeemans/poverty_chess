@@ -17,36 +17,28 @@ class Board
   end
 
   def draw 
+    files = ["a", "b", "c", "d", "e", "f", "g", "h"]
+    print("1 ")
+
     cells.each.with_index(1) do |cell, index| 
-      cell == "#" ? (print "#") : (print cell.char)
-      print(" ")
-      print "\n" if index % 8 == 0 
+      cell == "#" ? (print "# ") : (print "#{cell.char} ")
+      if index % 8 == 0 && index < 64
+        print "\n"
+        print "#{index / 8 + 1} " # rank numbers
+      end
     end
+
+    print "\n  "
+    files.each {|file| print "#{file} "} # file numbers
+    print "\n\n"
+  end
+
+  def copy_cells 
+    cells = []
+    self.cells.each { |cell| cells.push(cell)}
+    return cells
   end
 
 end
 
-
-def hit_piece(board, index)
-  return board.get_square(index) != "#"
-end
-
-def same_color(piece1, piece2)
-  return piece1.color == piece2.color
-end
-
-
-
-board = Board.new([]) 
-board.cells.push('#') while board.cells.count < 64
-
-bishop = Bishop.new("♗", "white", [], 3, 3)
-board.place_piece(bishop)
-
-bishop2 = Bishop.new("♗", "black", [], 5, 1)
-board.place_piece(bishop2)
-
-bishop.moves = bishop.get_moves(board)
-board.draw
-p bishop
 

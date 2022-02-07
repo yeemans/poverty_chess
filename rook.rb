@@ -14,9 +14,9 @@ class Rook
     (self.column + 1..7).each do |column| 
       square = self.row * 8 + column
       # check if rook bumps into enemy piece, or ally piece 
-      if hit_piece(board, square)
+      if Piece.hit_piece(board, square)
         piece = board.get_square(square)  
-        self.moves.push(square) if !same_color(self, piece) 
+        self.moves.push(square) #if !Piece.same_color?(self, piece) 
         break # end the loop, since rook hits a piece
       else     
         self.moves.push(square)
@@ -29,9 +29,9 @@ class Rook
     (self.column - 1..0).step(-1).each do |column| 
       square = self.row * 8 + column
       # check if rook bumps into enemy piece, or ally piece 
-      if hit_piece(board, square)
+      if Piece.hit_piece(board, square)
         piece = board.get_square(square)  
-        self.moves.push(square) if !same_color(self, piece) 
+        self.moves.push(square) 
         break # end the loop, since rook hits a piece
       else     
         self.moves.push(square)
@@ -44,9 +44,9 @@ class Rook
     (self.row - 1..0).step(-1).each do |row| 
       square = row * 8 + self.column
       # check if rook bumps into enemy piece, or ally piece 
-      if hit_piece(board, square)
+      if Piece.hit_piece(board, square)
         piece = board.get_square(square)  
-        self.moves.push(square) if !same_color(self, piece) 
+        self.moves.push(square)
         break # end the loop, since rook hits a piece
       else     
         self.moves.push(square)
@@ -59,9 +59,9 @@ class Rook
     (self.row + 1..7).each do |row| 
       square = row * 8 + self.column
       # check if rook bumps into enemy piece, or ally piece 
-      if hit_piece(board, square)
+      if Piece.hit_piece(board, square)
         piece = board.get_square(square)  
-        self.moves.push(square) if !same_color(self, piece) 
+        self.moves.push(square) 
         break # end the loop, since rook hits a piece
       else     
         self.moves.push(square)
