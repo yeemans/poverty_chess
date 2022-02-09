@@ -106,7 +106,8 @@ class King
 
   def castle_black(board)
     return if self.has_moved || self.in_check?(board)
-    
+    black_kingside_castle(board)
+    black_queenside_castle(board)
   end
 
   def white_kingside_castle(board)
@@ -126,10 +127,32 @@ class King
   def white_queenside_castle(board)
     squares = []
     (0..4).each do |cell| squares.push(board.cells[cell]) end
+    if board.cells[0] != "#"
+      return if board.cells[0].class.name == "Rook" && board.cells[0].has_moved
+    end
+    # can't castle through check or into check
     return if get_enemy_moves(board).flatten.include?(2) || get_enemy_moves(board).flatten.include?(3)
     return if squares[0] == "#" || squares[0].class.name != "Rook" || squares[0].color != "white"
     return if squares[1] != "#" || squares[2] != "#" || squares[3] != "#"
     return if squares[4] == "#" || squares[4].class.name != "King" || squares[4].color != "white"
     self.moves.push(2)
+  end
+
+  def black_kingside_castle(board)
+    squares = []
+    (60..63).each do |cell| squares.push(board.cells[cell]) end
+    if board.cells[63] != "#"
+      return if board.cells[63].class.name == "Rook" && board.cells[63].has_moved
+    end
+    # can't castle through check or into check 
+    return if get_enemy_moves(board).flatten.include?(61) || get_enemy_moves(board).flatten.include?(62)
+    return if squares[0] == "#" || squares[0].class.name != "King" || squares[0].color != "white"
+    return if squares[1] != "#" || squares[2] != "#"
+    return if squares[3] == "#" || squares[3].class.name != "Rook" || squares[3].color != "white"
+    self.moves.push(62)
+  end 
+
+  def black_queenside_castle(board)
+
   end
 end

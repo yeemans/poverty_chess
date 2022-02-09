@@ -136,11 +136,10 @@ module Piece
     dummy = Knight.new("", color, [], 0, 0) # used to get the king of matching color 
     king = board.cells[Piece.get_king(dummy, board)]
     king.castle_white(board) if color == "white"
-    # king.castle_black(board) if color == "white"
+    king.castle_black(board) if color == "black"
   end
 
   def Piece.generate_moves(board, color, turn)
-    Piece.add_castling(board, color)
     (0..63).each do |cell| 
       if Piece.hit_piece(board, cell) && board.cells[cell].color == color
         board.cells[cell].moves = []
@@ -150,7 +149,7 @@ module Piece
     end
 
     Piece.discard_checks(board, color, turn)
-    
+    Piece.add_castling(board, color)
   end
   
   def Piece.find_moves(board, turn)

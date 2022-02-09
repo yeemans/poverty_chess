@@ -70,16 +70,11 @@ board.place_piece(rook)
 Piece.find_moves(board, 1)
 
 def chess(board, turn, king)
-  
   return if checkmate?(board, turn)
+  
   board.draw
   Piece.find_moves(board, turn)
   Piece.display_pieces(board, turn)
-
-  # testing
-  p king.in_check?(board)
-  p board.cells[11]
-  # -----
 
   Piece.move(board, turn)
   chess(board, turn + 1, king)
