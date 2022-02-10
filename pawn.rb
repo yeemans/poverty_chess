@@ -73,14 +73,14 @@ class Pawn
     if in_bounds?(diag_right)
       square = board.get_square(diag_right)
       if Piece.hit_piece(board, diag_right) && !Piece.same_color?(self, square)
-        self.moves.push(diag_right) if self.column != 0
+        self.moves.push(diag_right) if self.column != 7
       end
     end
 
     if in_bounds?(diag_left)
       square = board.get_square(diag_left)
       if Piece.hit_piece(board, diag_left) && !Piece.same_color?(self, square) 
-        self.moves.push(diag_left) if self.column != 7
+        self.moves.push(diag_left) if self.column != 0
       end
     end 
     

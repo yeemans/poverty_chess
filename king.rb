@@ -146,13 +146,20 @@ class King
     end
     # can't castle through check or into check 
     return if get_enemy_moves(board).flatten.include?(61) || get_enemy_moves(board).flatten.include?(62)
-    return if squares[0] == "#" || squares[0].class.name != "King" || squares[0].color != "white"
+    return if squares[0] == "#" || squares[0].class.name != "King" || squares[0].color != "black"
     return if squares[1] != "#" || squares[2] != "#"
-    return if squares[3] == "#" || squares[3].class.name != "Rook" || squares[3].color != "white"
+    return if squares[3] == "#" || squares[3].class.name != "Rook" || squares[3].color != "black"
     self.moves.push(62)
   end 
 
   def black_queenside_castle(board)
 
+  end
+
+  def move_white_castle_pieces(board)
+    # copy the rook onto square 5
+    board.cells[5] = board.cells[7]
+    board.cells[5].column = 5 
+    board.cells[7] = "#"
   end
 end

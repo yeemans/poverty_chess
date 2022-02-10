@@ -263,12 +263,9 @@ module Piece
   def Piece.castle(king, move, board)
     square = king.row * 8 + king.column 
     # white's kingside castle
-    if square == 4 && move == 6 
-      # copy the rook onto square 5
-      board.cells[5] = board.cells[7]
-      board.cells[5].column = 5 
-      board.cells[7] = "#"
-    end
+    king.move_white_castle_pieces(board) if square == 4 && move == 6 
+
+    
 
     if square == 4 && move == 2
       board.cells[3] = board.cells[0]

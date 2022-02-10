@@ -22,8 +22,8 @@ board.place_piece(rook)
 knight = Knight.new("♞", "white", [], 6, 0)
 board.place_piece(knight)
 
-bishop = Bishop.new("♝", "white", [], 2, 0)
-#board.place_piece(bishop)
+bishop = Bishop.new("♝", "white", [], 6, 5)
+board.place_piece(bishop)
 bishop = Bishop.new("♝", "white", [], 5, 0)
 board.place_piece(bishop)
 
@@ -71,11 +71,11 @@ Piece.find_moves(board, 1)
 
 def chess(board, turn, king)
   return if checkmate?(board, turn)
-  
+
   board.draw
   Piece.find_moves(board, turn)
   Piece.display_pieces(board, turn)
-
+  p board.cells[40]
   Piece.move(board, turn)
   chess(board, turn + 1, king)
 end
