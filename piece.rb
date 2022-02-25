@@ -44,10 +44,10 @@ module Piece
     return attackers
   end
 
-  def Piece.get_king(piece, board)
+  def Piece.get_king(color, board)
     # returns king of same color
     board.cells.each.with_index do |cell, index|
-      return index if cell != "#" && Piece.is_king?(cell) && Piece.same_color?(piece, cell)
+      return index if cell != "#" && Piece.is_king?(cell) && cell.color == color
     end
   end
 
@@ -69,13 +69,13 @@ module Piece
   def get_enemy_pieces(board)
     pieces = []
     board.cells.each do |cell| 
-      pieces.push(cell) if cell != "#" && self.color != cell.color && cell.class.name != "Pawn"
+      pieces.push(cell) if cell != "#" && self.color != cell.color 
     end
     return pieces
   end
 
   def Piece.test_move(piece, move, board) 
-    board_copy = Board.new([])
+    board_copy = Board.new([], [])
     board_copy.cells = board.copy_cells
 
     # move piece from its square, unless it swallows the king
@@ -84,7 +84,7 @@ module Piece
     end
     board_copy.cells[move] = piece 
     board_copy.cells[piece.row * 8 + piece.column] = "#"
-    king = board_copy.cells[Piece.get_king(piece, board_copy)]
+    king = board_copy.cells[Piece.get_king(piece.color, board_copy)]
 
     king.get_enemy_pieces(board_copy).each do |e| 
       e.moves = []
@@ -104,7 +104,6 @@ module Piece
   
   # function that filters out moves that result in check
   def Piece.discard_checks(board, color, turn)
-    # for check discarding, we find the color of the player moving next
     color == 'white' ? (pieces = Piece.white_pieces(board)) : (pieces = Piece.black_pieces(board))
     turn % 2 == 0 ? (color_moving = 'black') : (color_moving = 'white')
     # only discard checks for the color that is moving
@@ -115,11 +114,10 @@ module Piece
         board_copy = Piece.test_move(piece, move, board)
         next unless board_copy # invalid board
 
-        king = Piece.get_king(piece, board_copy)
+        king = Piece.get_king(piece.color, board_copy)
         king = board_copy.cells[king]
 
         # recalculate the moves of all pieces that check the king
-
         piece.moves[piece.moves.index(move)] = nil if king.in_check?(board_copy)
         piece.moves = piece.moves.select { |m| m != nil}
       end
@@ -133,8 +131,7 @@ module Piece
   end
   
   def Piece.add_castling(board, color)
-    dummy = Knight.new("", color, [], 0, 0) # used to get the king of matching color 
-    king = board.cells[Piece.get_king(dummy, board)]
+    king = board.cells[Piece.get_king(color, board)]
     king.castle_white(board) if color == "white"
     king.castle_black(board) if color == "black"
   end
@@ -143,7 +140,7 @@ module Piece
     (0..63).each do |cell| 
       if Piece.hit_piece(board, cell) && board.cells[cell].color == color
         board.cells[cell].moves = []
-        board.cells[cell].moves = board.cells[cell].get_moves(board)
+        board.cells[cell].get_moves(board)
         Piece.add_check_moves(board.cells[cell], board)
       end
     end
@@ -152,7 +149,7 @@ module Piece
     Piece.add_castling(board, color)
   end
   
-  def Piece.find_moves(board, turn)
+  def Piece.find_moves_by_color(board, turn)
     turn % 2 == 0 ? (color = 'black') : (color = 'white')
     # generate moves for pieces of color variable first, then pieces of the other color 
     if color == "white"
@@ -169,7 +166,7 @@ module Piece
       # add moves to the piece if it checks the opposing king 
       king = Piece.opposing_king(piece, board)
       # remove king from this board copy
-      board_copy = Board.new([])
+      board_copy = Board.new([], [])
       board_copy.cells = board.copy_cells
       board_copy.cells[king] = "#"
       piece.get_moves(board_copy)
@@ -202,23 +199,13 @@ module Piece
     end
   end
 
-  def Piece.notation(piece)
-    files = ["a", "b", "c", "d", "e", "f", "g", "h"] 
-    return files[piece.column] + (piece.row + 1).to_s
-  end
-
-  def Piece.display_pieces(board, turn)
+  def Piece.display_pieces_with_moves(board, turn)
     turn % 2 == 0 ? (color = "black") : (color = "white")
     Piece.remove_collisions(board, color) # can't hit your own pieces 
-
-    if color == "black"
-      pieces = Piece.black_pieces(board)
-    else  
-      pieces = Piece.white_pieces(board)
-    end
+    color == "black" ? (pieces = Piece.black_pieces(board)) : (pieces = Piece.white_pieces(board))
     
     pieces.each_with_index do |piece, index| 
-      square = Piece.notation(piece) # convert to chess notation
+      square = Piece.square_to_notation(piece.row * 8 + piece.column) # show chess notation
       p "#{index}: #{piece.char}, #{square}"
     end
   end
@@ -252,27 +239,40 @@ module Piece
     choice = gets.chomp.to_i 
 
     Piece.castle(piece, moves[choice], board) if piece.class.name == "King" # add castle move
+    Piece.capture_enpassant(piece, moves[choice], board) if piece.class.name == "Pawn" # add enpassant
+    
     board.cells[moves[choice]] = piece # move piece
     board.cells[piece.row * 8 + piece.column] = "#" # piece's old square is now a #
 
-    # for castling 
-    piece.has_moved = true if piece.class.name == "King" || piece.class.name == "Rook"
+    piece.has_moved = true if piece.class.name == "King" || piece.class.name == "Rook" # for castle
+    # store piece's old column and row for the move list 
+    old_column = piece.column
+    old_row = piece.row
     Piece.update(piece, moves[choice])
+
+    # add to move list, like a pgn 
+    board.move_list.push({:piece => piece.class.name, :color => piece.color, :move => moves[choice], 
+    :from_square => old_row * 8 + old_column})
+    # promotion for pawns 
+    piece.promotion(board) if Piece.is_pawn?(piece)
   end
 
   def Piece.castle(king, move, board)
     square = king.row * 8 + king.column 
-    # white's kingside castle
-    king.move_white_castle_pieces(board) if square == 4 && move == 6 
 
-    
+    king.white_kingside_castle_move(board) if square == 4 && move == 6 
+    king.white_queenside_castle_move(board) if square == 4 && move == 2
+    king.black_kingside_castle_move(board) if square == 60 && move == 62
+    king.black_queenside_castle_move(board) if square == 60 && move == 58
+  end
 
-    if square == 4 && move == 2
-      board.cells[3] = board.cells[0]
-      board.cells[3].column = 3 
-      board.cells[0] = "#"
+  def Piece.capture_enpassant(pawn, move, board)
+    square = pawn.row * 8 + pawn.column
+    if pawn.color == 'black'
+      pawn.black_enpassant_capture(move, board) if move == square - 7 || move == square - 9 
+    elsif pawn.color == 'white'  
+      pawn.white_enpassant_capture(move, board) if move == square + 7 || move == square + 9 
     end
-
   end
 
   def Piece.valid?(index, list)

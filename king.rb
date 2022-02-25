@@ -22,7 +22,7 @@ class King
   def get_enemy_pieces(board)
     pieces = []
     board.cells.each do |cell| 
-      pieces.push(cell) if cell != "#" && self.color != cell.color && cell.class.name != "Pawn"
+      pieces.push(cell) if cell != "#" && self.color != cell.color
     end
     return pieces
   end
@@ -32,7 +32,7 @@ class King
     pieces = self.get_enemy_pieces(board)
     pieces.each do |piece| moves.push(piece.moves) end
 
-    return moves.push(check_for_pawns(board))
+    return moves
   end
 
   def get_moves(board)
@@ -51,48 +51,13 @@ class King
       end
       self.moves.push(move) if move.between?(0, 63)
     end
-    self.check_for_pawns(board) # cannot go to a pawn's diagonal
+
     return self.moves
-  end
-
-  def white_pawn_diagonals(pawn)
-    diag_left = pawn.row * 8 + pawn.column - 7
-    diag_right = pawn.row * 8 + pawn.column - 9
-
-    diagonals = [diag_left, diag_right]
-    diagonals.delete(diag_left) if pawn.column == 0
-    diagonals.delete(diag_right) if pawn.column == 7
-
-    return diagonals
-  end
-
-  def black_pawn_diagonals(pawn)
-    diag_left = pawn.row * 8 + pawn.column + 7
-    diag_right = pawn.row * 8 + pawn.column + 9
-
-    diagonals = [diag_left, diag_right]
-    diagonals.delete(diag_left) if pawn.column == 0
-    diagonals.delete(diag_right) if pawn.column == 7
-    
-    return diagonals.flatten
-  end
-
-  def check_for_pawns(board)
-    pawn_moves = []
-
-    self.get_enemy_pawns(board).each do |pawn| 
-      pawn_moves.push(black_pawn_diagonals(pawn)) if self.color == "white"
-      pawn_moves.push(white_pawn_diagonals(pawn)) if self.color == "black"
-    end
-
-    pawn_moves = pawn_moves.flatten
-    self.moves = self.moves.select {|move| !pawn_moves.include?(move)}
-    return pawn_moves
   end
 
   def in_check?(board) 
     self.get_enemy_pieces(board).each do |piece| 
-      king_square = Piece.get_king(self, board)
+      king_square = Piece.get_king(self.color, board)
       return true if piece.moves.include?(king_square)
     end
     return false
@@ -153,13 +118,42 @@ class King
   end 
 
   def black_queenside_castle(board)
-
+    squares = []
+    (56..60).each do |cell| squares.push(board.cells[cell]) end
+    if board.cells[0] != "#"
+      return if board.cells[56].class.name == "Rook" && board.cells[56].has_moved
+    end
+    # can't castle through check or into check
+    return if get_enemy_moves(board).flatten.include?(58) || get_enemy_moves(board).flatten.include?(59)
+    return if squares[0] == "#" || squares[0].class.name != "Rook" || squares[0].color != "black"
+    return if squares[1] != "#" || squares[2] != "#" || squares[3] != "#"
+    return if squares[4] == "#" || squares[4].class.name != "King" || squares[4].color != "black"
+    self.moves.push(58)
   end
 
-  def move_white_castle_pieces(board)
+  def white_kingside_castle_move(board)
     # copy the rook onto square 5
     board.cells[5] = board.cells[7]
     board.cells[5].column = 5 
     board.cells[7] = "#"
   end
+
+  def white_queenside_castle_move(board)
+    board.cells[3] = board.cells[0]
+    board.cells[3].column = 3 
+    board.cells[0] = "#"
+  end
+
+  def black_kingside_castle_move(board)
+    board.cells[61] = board.cells[63]
+    board.cells[61].column = 5 
+    board.cells[63] = "#"
+  end
+
+  def black_queenside_castle_move(board)
+    board.cells[59] = board.cells[56]
+    board.cells[59].column = 3 
+    board.cells[56] = "#"
+  end
+
 end

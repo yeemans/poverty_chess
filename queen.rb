@@ -12,6 +12,6 @@ class Queen
     # queen moves are a combination of bishop and rook moves
     bishop = Bishop.new("B", self.color, [], self.column, self.row)
     rook = Rook.new("R", self.color, [], self.column, self.row)
-    return bishop.get_moves(board).push(rook.get_moves(board)).flatten
+    self.moves = bishop.get_moves(board).push(rook.get_moves(board)).flatten
   end
 end

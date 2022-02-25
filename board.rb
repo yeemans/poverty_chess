@@ -2,9 +2,11 @@ require_relative 'piece.rb'
 
 class Board 
   attr_accessor :cells
+  attr_accessor :move_list
 
-  def initialize(cells)
+  def initialize(cells, move_list)
     @cells = cells
+    @move_list = move_list
   end
 
   def get_square(index)
@@ -38,6 +40,19 @@ class Board
     self.cells.each { |cell| cells.push(cell)}
     return cells
   end
+
+  def white_move_list 
+    moves = []
+    self.move_list.each {|m| moves.push(m[:move]) if m[:color] == "white"}
+    return moves
+  end
+
+  def black_move_list 
+    moves = []
+    self.move_list.each {|m| moves.push(m[:move]) if m[:color] == "black"}
+    return moves
+  end
+
 
 end
 
